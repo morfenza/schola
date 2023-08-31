@@ -2,6 +2,6 @@
 
 FactoryBot.define do
   factory :subject do
-    sequence :name, %w[math portuguese english physics history geography biology].cycle
+    sequence :name, %w[Matemática Português História Geografia Física Química Inglês].cycle
   end
 end
