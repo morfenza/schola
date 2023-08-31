@@ -2,11 +2,13 @@
 
 NUMBER_OF_SUBJECTS = 7
 NUMBER_OF_TEACHERS = 20
-NUMBER_OF_GRADES = [4, 8].freeze
 
-DEFINED_YEAR_RANGE = 2012..2023
-DEFINED_GRADE_RANGE = 5..9
-DEFINED_STUDENTS_NUM_RANGE = 20..40
+EXAMS_ON_CURRENT_YEAR = 4
+EXAMS_PER_YEAR = 8
+
+COURSE_YEAR_RANGE = 2012..Time.current.year
+AVAILABLE_GRADES_RANGE = 5..9
+STUDENTS_NUM_RANGE = 20..40
 
 CHANCE_OF_RE_ENROLLMENT = 0.70
 
@@ -20,12 +22,9 @@ def create_teachers
 end
 
 def create_courses
-  current_class = nil
-  enrolled_students = nil
-
-  DEFINED_YEAR_RANGE.each do |current_year|
+  COURSE_YEAR_RANGE.each do |current_year|
     puts "\t\t Year: #{current_year}"
-    DEFINED_GRADE_RANGE.each do |current_grade|
+    AVAILABLE_GRADES_RANGE.each do |current_grade|
       puts "\t\t\t Grade: #{current_grade}"
       current_class = FactoryBot.create(
         :course,
@@ -33,7 +32,7 @@ def create_courses
         name: "#{current_grade}º Série"
       )
 
-      enrolled_students = if current_year == DEFINED_YEAR_RANGE.first
+      enrolled_students = if current_year == COURSE_YEAR_RANGE.first
                             create_new_students
                           else
                             sort_or_create_studends
@@ -43,51 +42,40 @@ def create_courses
       create_enrollments(enrolled_students, current_class)
 
       puts "\t\t\t\t Resolving assignments"
-      create_teacher_assingments(current_class)
-
-      puts "\t\t\t\t Resolving exams"
-      create_exams(current_class)
+      create_teacher_assignments(current_class)
     end
   end
 end
 
 def create_new_students
-  number_of_students = rand(DEFINED_STUDENTS_NUM_RANGE)
-  enrolled_students = []
-
-  number_of_students.times do
-    enrolled_students.append FactoryBot.create(:student)
-  end
-
-  enrolled_students
+  number_of_students = rand(STUDENTS_NUM_RANGE)
+  number_of_students.times.collect { FactoryBot.create(:student) }
 end
 
 def sort_or_create_studends
-  number_of_students = rand(DEFINED_STUDENTS_NUM_RANGE)
-  enrolled_students = []
+  number_of_students = rand(STUDENTS_NUM_RANGE)
+  available_students_array = Student.all
 
-  number_of_students.times do
+  number_of_students.times.collect do
     if rand.truncate(2) <= CHANCE_OF_RE_ENROLLMENT
-      enrolled_students.append Student.all.sample
+      available_students_array.sample
     else
-      enrolled_students.append FactoryBot.create(:student)
+      FactoryBot.create(:student)
     end
   end
-
-  enrolled_students
 end
 
 def create_enrollments(enrolled_students, current_class)
-  until enrolled_students.empty?
+  enrolled_students.each do |student|
     FactoryBot.create(
       :enrollment,
-      student: enrolled_students.pop,
+      student:,
       course: current_class
     )
   end
 end
 
-def create_teacher_assingments(current_class)
+def create_teacher_assignments(current_class)
   available_teachers = Teacher.all
 
   Subject.all.each do |current_subject|
@@ -99,44 +87,44 @@ def create_teacher_assingments(current_class)
   end
 end
 
-def create_exams(current_class)
-  if current_class.year == DEFINED_YEAR_RANGE.last
-    # creates four exams per subject
-    Subject.all.each do |current_subject|
-      4.times do
-        current_exam = FactoryBot.create(
-          :exam,
-          course: current_class,
-          subject: current_subject
-        )
+def create_all_exams
+  all_exams = []
 
-        create_grades(current_class, current_exam)
-      end
-    end
-  else
-    # creates eight exams per subject
-    Subject.all.each do |current_subject|
-      8.times do
-        current_exam = FactoryBot.create(
-          :exam,
-          course: current_class,
-          subject: current_subject
-        )
+  Course.find_each do |current_course|
+    number_of_exams = current_course.year == COURSE_YEAR_RANGE.last ? EXAMS_ON_CURRENT_YEAR : EXAMS_PER_YEAR
 
-        create_grades(current_class, current_exam)
+    Subject.find_each do |current_subject|
+      number_of_exams.times do
+        all_exams.append(
+          {
+            course_id: current_course.id,
+            subject_id: current_subject.id,
+            realized_on: rand(current_course&.starts_on..current_course&.ends_on)
+          }
+        )
       end
     end
   end
+
+  Exam.insert_all(all_exams)
 end
 
-def create_grades(current_class, current_exam)
-  current_class.enrollments.each do |current_enrollment|
-    Grade.create!(
-      value: rand(0.0..10.0),
-      enrollment: current_enrollment,
-      exam: current_exam
-    )
+def create_all_grades
+  all_grades = []
+
+  Exam.includes(course: :enrollments).find_each do |current_exam|
+    current_exam.course.enrollments.find_each do |current_enrollment|
+      all_grades.append(
+        {
+          value: rand(0.0..10.0).truncate(2),
+          exam_id: current_exam.id,
+          enrollment_code: current_enrollment.code
+        }
+      )
+    end
   end
+
+  Grade.insert_all(all_grades)
 end
 
 puts '#### Seeds Logging ####'
@@ -148,3 +136,9 @@ create_teachers
 
 puts "\t Creating courses......"
 create_courses
+
+puts "\t Creating exams........"
+create_all_exams
+
+puts "\t Creating grades......."
+create_all_grades

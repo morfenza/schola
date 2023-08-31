@@ -42,3 +42,11 @@ Metrics/CyclomaticComplexity:
 Metrics/PerceivedComplexity:
   Exclude:
     - db/**/*
+
+Performance/TimesMap:
+  Exclude:
+    - db/**/*
+
+Rails/SkipsModelValidations:
+  Exclude:
+    - db/**/*

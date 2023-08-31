@@ -4,7 +4,7 @@ class GradesController < ApplicationController
   before_action :set_grade, only: %i[show edit update destroy]
 
   def index
-    @grades = Grade.all
+    @grades = Grade.all.includes(enrollment: :student, exam: :subject)
   end
 
   def show; end

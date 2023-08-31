@@ -41,5 +41,7 @@ RSpec.describe Course do
   describe 'associations' do
     it { is_expected.to have_many(:teacher_assignments).dependent(:destroy) }
     it { is_expected.to have_many(:teachers).through(:teacher_assignments) }
+    it { is_expected.to have_many(:enrollments) }
+    it { is_expected.to have_many(:exams) }
   end
 end
