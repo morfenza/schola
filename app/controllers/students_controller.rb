@@ -4,7 +4,9 @@ class StudentsController < ApplicationController
   before_action :set_student, only: %i[show edit update destroy]
 
   def index
-    @students = Student.all
+    @students = Student.includes(enrollments: :course).where(course: { year: year_param }).all
+
+    flash.now[:notice] = "No students are enrolled in #{year_param}!" if @students.empty?
   end
 
   def show; end
@@ -46,5 +48,9 @@ class StudentsController < ApplicationController
 
   def student_params
     params.require(:student).permit(:name, :born_on)
+  end
+
+  def year_param
+    @year_param ||= params.fetch(:year, Time.current.year)
   end
 end

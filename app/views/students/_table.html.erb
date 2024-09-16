@@ -11,15 +11,17 @@
       </thead>
       <tbody>
         <% students.each do |student| %>
-          <tr>
-            <td class="border px-8 py-4 whitespace-nowrap">-</td>
-            <td class="border px-8 py-4 w-full whitespace-nowrap"><%= student.name %></td>
-            <td class="border px-8 py-4 whitespace-nowrap">-</td>
-            <td class="border px-8 py-4 whitespace-nowrap">
-              <%= link_to 'Show', student, class: "rounded-lg py-3 px-5 bg-gray-100 inline-block font-medium" %>
-              <%= link_to 'Edit', edit_student_path(student), class: "rounded-lg py-3 ml-2 px-5 bg-gray-100 inline-block font-medium" %>
-            </td>
-          </tr>
+          <% student.enrollments.each do |enrollment| %>
+            <tr>
+              <td class="border px-8 py-4 whitespace-nowrap"> <%= enrollment.code %></td>
+              <td class="border px-8 py-4 w-full whitespace-nowrap"><%= student.name %></td>
+              <td class="border px-8 py-4 whitespace-nowrap"><%= enrollment.course.name %></td>
+              <td class="border px-8 py-4 whitespace-nowrap">
+                <%= link_to 'Show', student, class: "rounded-lg py-3 px-5 bg-gray-100 inline-block font-medium" %>
+                <%= link_to 'Edit', edit_student_path(student), class: "rounded-lg py-3 ml-2 px-5 bg-gray-100 inline-block font-medium" %>
+              </td>
+            </tr>
+          <% end %>
         <% end %>
       </tbody>
     </table>
