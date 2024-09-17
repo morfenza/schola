@@ -10,6 +10,10 @@ require:
 AllCops:
   NewCops: enable
 
+Metrics/MethodLength:
+  Exclude:
+    - db/**/*
+
 Style/Documentation:
   Enabled: false
 
@@ -26,3 +30,23 @@ RSpec/MultipleExpectations:
 
 RSpec/MultipleMemoizedHelpers:
   Max: 7
+
+Metrics/AbcSize:
+  Exclude:
+    - db/**/*
+
+Metrics/CyclomaticComplexity:
+  Exclude:
+    - db/**/*
+
+Metrics/PerceivedComplexity:
+  Exclude:
+    - db/**/*
+
+Performance/TimesMap:
+  Exclude:
+    - db/**/*
+
+Rails/SkipsModelValidations:
+  Exclude:
+    - db/**/*

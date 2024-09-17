@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  resource :dashboard, only: :show
+  # resource :dashboard, only: :show
+  get '/dashboard', to: 'dashboard#show'
 
   resources :students
   resources :enrollments, param: :code
